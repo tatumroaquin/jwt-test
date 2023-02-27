@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login Page</title>
+  </head>
+  <body>
+    <form>
+      <label for="username">Username</label>
+      <input type="username" id="username" name="username" />
+
+      <label for="password">Password</label>
+      <input type="text" id="password" name="password" />
+
+      <button type="button" onclick="authenticate()">Submit</button>
+    </form>
+
+    <br />
+
+    <div id="token"></div>
+
+    <br />
+
+    <div id="users"></div>
+
+    <script>
+      let _token;
+
+      function authenticate() {
+        const xhr = new XMLHttpRequest();
+
+        const data = {
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value,
+        };
+
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState === 4) {
+            const response = JSON.parse(xhr.responseText);
+
+            switch (xhr.status) {
+              case 200:
+                _token = response.token;
+                const tokenElement = document.getElementById('token');
+
+                const token = document.createElement('p');
+                token.innerHTML = `token: ${response.token}`;
+
+                const button = document.createElement('button');
+                button.setAttribute('onclick', 'getusers()');
+                button.innerHTML = 'get users';
+
+                if (tokenElement.firstChild) {
+                  tokenElement.innerHTML = '';
+                }
+
+                tokenElement.appendChild(token);
+                tokenElement.appendChild(button);
+
+                break;
+              default:
+                document.getElementById(
+                  'token'
+                ).innerHTML = `message: ${response.message}`;
+                break;
+            }
+          }
+        };
+
+        xhr.open('POST', 'http://localhost:3000/login', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(data));
+      }
+
+      function getusers() {
+        const xhr = new XMLHttpRequest();
+
+        const data = { token: _token };
+
+        xhr.onreadystatechange = () => {
+          if (xhr.readyState === 4) {
+            const response = JSON.parse(xhr.responseText);
+
+            switch (xhr.status) {
+              case 200:
+                const usersElement = document.getElementById('users');
+                const ul = document.createElement('ul');
+
+                response.forEach((u) => {
+                  const li = document.createElement('li');
+                  li.innerHTML = u.username;
+                  ul.appendChild(li);
+                });
+
+                if (usersElement.firstChild) {
+                  users.innerHTML = '';
+                }
+
+                users.appendChild(ul);
+                break;
+
+              default:
+                document.getElementById(
+                  'users'
+                ).innerHTML = `message: ${response.message}`;
+                break;
+            }
+          }
+        };
+
+        xhr.open('POST', 'http://localhost:3000/getusers', true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(data));
+      }
+    </script>
+  </body>
+</html>
